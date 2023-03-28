@@ -45,7 +45,7 @@ def temporal_sampling(frames, start_idx, end_idx, num_samples):
             `batch_size` x `num video frames` x `height` x `width` x `channel`.
         start_idx (int): the index of the start frame.
         end_idx (int): the index of the end frame.
-        num_samples (int): number of frames to sample.
+        num_samples (int): number of frames to sample. # 32
     Returns:
         frames (tersor): a tensor of temporal sampled video frames,
             dimension is
@@ -70,8 +70,8 @@ class Normalize(object):
 
 class Preprocessing(object):
     def __init__(self, type, cfg, target_fps=16, size=112,
-                 clip_len='5', padding_mode='tile', min_num_clips=1):
-        self.type = type
+                 clip_len='5', padding_mode='tile', min_num_clips=1, features_length=64):
+        self.type = type # "3d"
         if type == '2d':
             self.norm = Normalize(
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -80,14 +80,15 @@ class Preprocessing(object):
             #   mean=[110.6, 103.2, 96.3], std=[1.0, 1.0, 1.0])
             self.norm = Normalize(
                 mean=[0.45, 0.45, 0.45], std=[0.225, 0.225, 0.225])
-        self.target_fps = target_fps
-        self.num_frames = cfg.DATA.NUM_FRAMES
-        self.sampling_rate = cfg.DATA.SAMPLING_RATE
+        self.target_fps = target_fps # 30
+        self.num_frames = cfg.DATA.NUM_FRAMES # 32
+        self.sampling_rate = cfg.DATA.SAMPLING_RATE # 2
         self.cfg = cfg
-        self.size = size
-        self.clip_len = clip_len
-        self.padding_mode = padding_mode
-        self.min_num_clips = min_num_clips
+        self.size = size # 224
+        self.clip_len = clip_len # 2
+        self.padding_mode = padding_mode # tile
+        self.min_num_clips = min_num_clips # 1
+        self.features_length = features_length # 64, 128, 256
 
     def _tile(self, a, dim, n_tile):
         init_dim = a.size(dim)
@@ -101,8 +102,9 @@ class Preprocessing(object):
 
     def _pad_frames(self, tensor, mode='tile', value=0):
         # print(f"Target fps {self.target_fps} not satisfied, padding....")
-        n = self.target_fps - len(tensor) % self.target_fps
-        if n == self.target_fps:
+        # self.features_length 배수에 맞게 pad
+        n = self.features_length - len(tensor) % self.features_length
+        if n == self.features_length:
             return tensor
         if mode == "constant":
             z = th.ones(n, tensor.shape[1], tensor.shape[2], tensor.shape[3],
@@ -152,37 +154,26 @@ class Preprocessing(object):
             tensor = tensor / 255.0
             tensor = self.norm(tensor)
         elif self.type == '3d':
+            # print('info:', info)
+            # print('tensor.shape:', tensor.shape)
+            # self.features_length 배수에 맞게 pad
             tensor = self._pad_frames(tensor, self.padding_mode)
-            # (duration [in seconds], # frames, height, width, channel)
-            tensor = tensor.view(-1, self.target_fps, self.size, self.size, 3)
-            # (# of clips, # of clip frames, height, width, channel)
-            tensor = self._pad_clips(tensor, self.padding_mode)
-            clip_len = convert_to_float(self.clip_len)
-            clips = tensor.view(
-                    -1, int(clip_len*self.target_fps), self.size, self.size, 3)
-            try:
-                duration = info["duration"]
-                if duration > 0:
-                    num_clips = int(math.ceil(duration/clip_len))
-                    clips = clips[:num_clips]
-            except Exception:
-                print("Duration not available...")
-            num_clips = len(clips)
-            if num_clips < self.min_num_clips:
-                clips = clips.view(
-                    self.min_num_clips, -1, self.size, self.size, 3)
-            # assert th.equal(clips[1, 0, :, :, :],
-            #                 tensor[clip_len, 0, :, :, :])
+            # print('after _pad_frames:', tensor.shape)
+            # (features_length, (depends on T), height, width, channel)
+            tensor = tensor.view(self.features_length, -1, self.size, self.size, 3)
+            # print('after view:', tensor.shape)
+            
             fps = info["fps"]  # .item()
             start_idx, end_idx = get_start_end_idx(
-                clips.shape[1],
+                tensor.shape[1],
                 self.num_frames * self.sampling_rate * fps / self.target_fps,
                 0,
                 1,
             )
             # Perform temporal sampling from the decoded video.
-            clips = temporal_sampling(
-                clips, start_idx, end_idx, self.num_frames)
+            tensor = temporal_sampling(
+                tensor, start_idx, end_idx, self.num_frames)
             # B T H W C
             # clips = clips.transpose(1, 2)
-        return clips
+            # print('after temporal_sampling clips.shape:', tensor.shape)
+        return tensor

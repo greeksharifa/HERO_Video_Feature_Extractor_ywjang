@@ -24,6 +24,9 @@ parser.add_argument(
         '--clip_len', type=float, default=3/2,
         help='decoding length of clip (in seconds)')
 parser.add_argument(
+    '--features_length', type=int, default=64,
+    help="features' shape will be (args.features_length, 2304)")
+parser.add_argument(
         '--overwrite', action='store_true',
         help='allow overwrite output files')
 parser.add_argument('--half_precision', type=int, default=1,
@@ -39,7 +42,8 @@ args = parser.parse_args()
 output_feat_size = 512 if args.model_version == "ViT-B/32" else 640
 dataset = VideoLoader(
     args.csv,
-    framerate=1/args.clip_len,
+    # framerate=1/args.clip_len,
+    framerate=29.97,
     size=224 if args.model_version == "ViT-B/32" else 288,
     centercrop=True,
     overwrite=args.overwrite,
@@ -54,19 +58,22 @@ loader = DataLoader(
     num_workers=args.num_decoding_thread,
     sampler=sampler if n_dataset > 10 else None,
 )
-preprocess = Preprocessing()
+preprocess = Preprocessing(features_length=args.features_length)
 model, _ = clip.load(args.model_version, device="cuda")
 
 totatl_num_frames = 0
 with th.no_grad():
     for k, data in enumerate(tqdm(loader)):
+        # if k>=3:
+        #     break
+        # print("data['video'].shape:", data['video'].shape)
         input_file = data['input'][0]
         output_file = data['output'][0]
         if args.model_version == "RN50x4":
             output_file = output_file.replace(
                 "clip-vit_features", "clip-rn50x4_features")
         if os.path.isfile(output_file):
-            # print(f'Video {input_file} already processed.')
+            print(f'Video {input_file} already processed.')
             continue
         elif not os.path.isfile(input_file):
             print(f'{input_file}, does not exist.\n')
@@ -74,6 +81,7 @@ with th.no_grad():
             video = data['video'].squeeze(0)
             if len(video.shape) == 4:
                 video = preprocess(video)
+                # print(input_file, video.shape) # [T, 3, 224, 224]. T=24,23,21,21,21,
                 n_chunk = len(video)
                 features = th.cuda.FloatTensor(
                     n_chunk, output_feat_size).fill_(0)
@@ -87,6 +95,7 @@ with th.no_grad():
                 features = features.cpu().numpy()
                 if args.half_precision:
                     features = features.astype('float16')
+                # print('features.shape:', features.shape)
                 totatl_num_frames += features.shape[0]
                 # safeguard output path before saving
                 dirname = os.path.dirname(output_file)

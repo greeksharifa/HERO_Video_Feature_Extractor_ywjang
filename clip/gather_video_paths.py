@@ -9,7 +9,7 @@ COMMON_VIDEO_ETX = set([
 
 def main(opts):
     videopath = opts.video_path
-    feature_path = opts.feature_path
+    feature_path = opts.feature_path + '_' + str(opts.features_length)
     csv_folder = opts.csv_folder
     if not os.path.exists(csv_folder):
         os.mkdir(csv_folder)
@@ -21,7 +21,7 @@ def main(opts):
     else:
         corrupted_ids = None
 
-    outputFile = f"{csv_folder}/clip-vit_info.csv"
+    outputFile = f"{csv_folder}/clip-vit_info_{opts.features_length}.csv"
     with open(outputFile, "w") as fw:
         fw.write("video_path,feature_path\n")
         fileList = []
@@ -47,13 +47,14 @@ def main(opts):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--video_path", default="/video/", type=str,
-                        help="The input video path.")
-    parser.add_argument("--feature_path", default="/output/clip-vit_features",
+    parser.add_argument("--video_path",         default="/video/",
+                        type=str, help="The input video path.")
+    parser.add_argument("--feature_path",       default="/output/clip-vit_features",
                         type=str, help="output feature path.")
-    parser.add_argument(
-        '--csv_folder', type=str, default="/output/csv",
-        help='output csv folder')
+    parser.add_argument('--csv_folder',         default="/output/csv",
+                        type=str, help='output csv folder')
+    parser.add_argument("--features_length", default=64,
+                        type=int, help="equal to extract*.py features_length")
     parser.add_argument(
         '--corrupted_id_file', type=str, default="",
         help='corrupted id file')

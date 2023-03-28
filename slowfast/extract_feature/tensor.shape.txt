@@ -1,0 +1,56 @@
+info: {'duration': 42.81, 'frames_length': 1283, 'fps': 29, 'height': 720, 'width': 1280}
+tensor.shape: torch.Size([1284, 224, 224, 3])
+after _pad_frames: torch.Size([1290, 224, 224, 3])
+after view: torch.Size([43, 30, 224, 224, 3])
+after _pad_clips: torch.Size([44, 30, 224, 224, 3])
+clips.shape: torch.Size([22, 60, 224, 224, 3])
+clips.shape: torch.Size([22, 60, 224, 224, 3])
+after view clips.shape: torch.Size([22, 60, 224, 224, 3])
+after temporal_sampling clips.shape: torch.Size([22, 32, 224, 224, 3])
+
+  0%|| 0/9848 [00:00<?, ?it/s]Processing /video/X29NF.mp4
+video.shape: torch.Size([22, 32, 224, 224, 3])
+fast_clip.shape: torch.Size([16, 32, 224, 224, 3])
+fast_clip.shape: torch.Size([6, 32, 224, 224, 3])
+features.shape: (22, 2304)
+
+--------------------------------------------------------------------------------------------
+
+info: {'duration': 32.133984, 'frames_length': 964, 'fps': 30, 'height': 360, 'width': 270}
+tensor.shape: torch.Size([964, 224, 224, 3])
+after _pad_frames: torch.Size([990, 224, 224, 3])
+after view: torch.Size([33, 30, 224, 224, 3])
+after _pad_clips: torch.Size([34, 30, 224, 224, 3])
+clips.shape: torch.Size([17, 60, 224, 224, 3])
+clips.shape: torch.Size([17, 60, 224, 224, 3])
+after view clips.shape: torch.Size([17, 60, 224, 224, 3])
+after temporal_sampling clips.shape: torch.Size([17, 32, 224, 224, 3])
+
+  0%|| 1/9848 [00:01<2:56:13,  1.07s/it]Processing /video/BOHLW.mp4
+video.shape: torch.Size([17, 32, 224, 224, 3])
+fast_clip.shape: torch.Size([16, 32, 224, 224, 3])
+fast_clip.shape: torch.Size([1, 32, 224, 224, 3])
+features.shape: (17, 2304)
+
+--------------------------------------------------------------------------------------------
+
+info: {'duration': 23.100018, 'frames_length': 382, 'fps': 16, 'height': 720, 'width': 480}
+tensor.shape: torch.Size([694, 224, 224, 3])
+after _pad_frames: torch.Size([720, 224, 224, 3])
+after view: torch.Size([24, 30, 224, 224, 3])
+after _pad_clips: torch.Size([24, 30, 224, 224, 3])
+clips.shape: torch.Size([12, 60, 224, 224, 3])
+clips.shape: torch.Size([12, 60, 224, 224, 3])
+after view clips.shape: torch.Size([12, 60, 224, 224, 3])
+after temporal_sampling clips.shape: torch.Size([12, 32, 224, 224, 3])
+
+  0%|| 2/9848 [00:01<2:48:33,  1.03s/it]Processing /video/ME4D5.mp4
+video.shape: torch.Size([12, 32, 224, 224, 3])
+fast_clip.shape: torch.Size([12, 32, 224, 224, 3])
+features.shape: (12, 2304)
+
+
+
+
+Total number of frames: 51
+Model inference time: 2.239501476287842

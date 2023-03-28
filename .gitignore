@@ -3,6 +3,7 @@ tags
 
 # compiled files #
 */__pycache__/*
+**/*/__pycache__/**/*
 *.pyc
 
 # Packages #
@@ -27,6 +28,7 @@ tags
 *.swp
 *.vscode/
 *.idea/
+venv/
 
 # OS generated files #
 ######################

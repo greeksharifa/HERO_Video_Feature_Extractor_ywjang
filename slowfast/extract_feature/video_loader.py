@@ -102,6 +102,7 @@ class VideoLoader(Dataset):
                 video = read_yuv420p(out, width, height)
 
             # video = video.permute(0, 3, 1, 2)
+            print('video_path:', video_path)
             video = self.preprocess(video, info)
             return {'video': video, 'input': video_path,
                     'output': output_file, 'info': info}
@@ -148,8 +149,8 @@ def pack_pathway_output(cfg, frames):
 
 
 def clip_iterator(video, batch_size):
-    n_chunk = len(video)
-    n_iter = int(math.ceil(n_chunk / float(batch_size)))
+    n_chunk = len(video) # 22
+    n_iter = int(math.ceil(n_chunk / float(batch_size))) # 22 / 16 -> 2
     for i in range(n_iter):
         min_ind = i * batch_size
         max_ind = (i + 1) * batch_size
